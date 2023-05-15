@@ -34,7 +34,8 @@ function Login() {
     validationSchema: validate,
     onSubmit: async (values) => {
       userSignup(values)
-        .then(() => {
+        .then((res) => {
+          localStorage.setItem('JwtToken', res.data.token);
           Navigate('/profile')
         })
         .catch((error) => {
