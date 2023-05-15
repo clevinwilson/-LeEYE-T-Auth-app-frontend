@@ -1,22 +1,28 @@
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom';
-import { userSignup } from '../../services/userApi';
+import { getUserDetails, updateProfile } from '../../services/userApi';
 import { toast } from "react-toastify";
+import { useEffect, useState } from 'react';
 
 function Profile() {
-    const Navigate = useNavigate();
+    const [userDetails, setuserDetails] = useState();
+
+    useEffect(() => {
+        getUserDetails()
+            .then((response) => {
+                setuserDetails(response.data.user)
+                formik.setFieldValue('name', response.data.user.name);
+                formik.setFieldValue('address', response.data.user.address);
+            })
+    }, [])
+
+
 
     //yup validation 
     const validate = Yup.object({
         name: Yup.string()
             .max(15, 'Must be 15 characters or less')
             .required('Name is Required'),
-        userImage: Yup.string()
-            .required('image is Required'),
-        password: Yup.string()
-            .min(6, 'Password must be at least 6 charaters')
-            .required('Password is Required'),
         address: Yup.string()
             .max(15, 'Must be 15 characters or less')
             .required('Address is Required'),
@@ -27,14 +33,15 @@ function Profile() {
         initialValues: {
             name: '',
             userImage: '',
-            password: '',
             address: ''
         },
         validationSchema: validate,
         onSubmit: async (values) => {
-            userSignup(values)
-                .then(() => {
-                    Navigate('/profile')
+            updateProfile(values)
+                .then((response) => {
+                    toast.success(response.data.message, {
+                        position: "top-center",
+                    });
                 })
                 .catch((error) => {
                     toast.error(error.response.data.message, {
@@ -73,18 +80,19 @@ function Profile() {
                         <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit} >
                             <div>
                                 <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your name</label>
-                                <input type="name" name="name" id="name" onChange={(event) => { handleChange(event) }} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="User Name" />
+                                <input type="name" name="name" id="name" value={formik && formik.values.name} onChange={(event) => { handleChange(event) }} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="User Name" />
                                 {formik.touched.name && formik.errors.name ? (
                                     <p className='text-red-500 mt-2 text-sm'>{formik.errors.name}</p>
                                 ) : null}
                             </div>
 
-                            {formik.values.userImage ?
+                            {formik.values.userImage || userDetails ?
                                 <div className="mb-1 flex justify-center items-center">
-                                    <img src={URL.createObjectURL(formik.values.userImage)} className="h-32 max-w-32 rounded-full" />
+                                    <img src={formik.values.userImage ? URL.createObjectURL(formik.values.userImage) : `http://localhost:4000/${userDetails.image.path}`} className="h-32 max-w-32 rounded-full" />
                                 </div>
                                 : ""
                             }
+
 
                             <div>
                                 <label htmlFor="userImage" className="block mb-2 text-sm font-medium  dark:text-white">Image</label>
@@ -99,14 +107,14 @@ function Profile() {
 
                             <div>
                                 <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Address</label>
-                                <input type="text" name="address" onChange={(event) => { handleChange(event) }} id="address" placeholder="Address" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                                <input type="text" name="address" value={formik && formik.values.address} onChange={(event) => { handleChange(event) }} id="address" placeholder="Address" className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
                                 {formik.touched.address && formik.errors.address ? (
                                     <div className='text-red-500 mt-2 text-sm'>{formik.errors.address}</div>
                                 ) : null}
                             </div>
 
 
-                            <button className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Sign Up</button>
+                            <button className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Update</button>
                         </form>
                     </div>
                 </div>
