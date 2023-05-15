@@ -3,18 +3,26 @@ import * as Yup from 'yup';
 import { getUserDetails, updateProfile } from '../../services/userApi';
 import { toast } from "react-toastify";
 import { useEffect, useState } from 'react';
+import {useNavigate} from 'react-router-dom';
 
 function Profile() {
     const [userDetails, setuserDetails] = useState();
+    const nvaigate=useNavigate();
 
     useEffect(() => {
         getUserDetails()
             .then((response) => {
+                
                 setuserDetails(response.data.user)
                 formik.setFieldValue('name', response.data.user.name);
                 formik.setFieldValue('address', response.data.user.address);
             })
+            .catch((error)=>{
+                nvaigate('/');
+            })
     }, [])
+
+
 
 
 
